@@ -1,15 +1,18 @@
 {
   "name": "bankinfo",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tailwindcss -i ./src/style.css -o ./static/styles/style.css --watch"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.4.5"
-  }
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.4"
+  },
+  "description": ""
 }

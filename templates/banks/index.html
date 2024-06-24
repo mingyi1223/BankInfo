@@ -1,11 +1,36 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>台灣銀行代碼查詢</title>
+	<link rel="stylesheet" href={% static "styles/style.css" %}>
 </head>
 <body>
-	
+	<main class="container my-2 mx-auto">
+		<div class="mx-2 px-2">
+			<div class="flex gap-2 text-gray-500">
+				<p>powered by</p>
+				<a href="https://5xcampus.com/">5xCampus</a>
+			</div>
+			<h1 class="text-5xl font-thin my-2">台灣銀行代碼查詢</h1>
+			<div class="flex">
+				<div class="flex flex-col">
+					<label for="">銀行名稱</label>
+					<input id="type" type="text" list="typelist" class="border border-gray-500 p-2 text-lg" placeholder="請輸入關鍵字或銀行代碼">
+					<datalist id="typelist">
+						{% for bank in banks %}
+							<option>{{ bank.bank_code }}{{ bank.bank }}</option>
+						{% endfor %}
+					</datalist>
+				</div>
+				<div>
+					<label for="">分行名稱</label>
+				</div>
+			</div>
+		</div>
+	</main>
 </body>
 </html>
