@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 import urllib.request, csv
 import ssl
-from banks.models import Banks
+from banks.models import Banks, Institutions
 
 class Command(BaseCommand):
   def handle(self, *args, **options):
@@ -9,17 +9,45 @@ class Command(BaseCommand):
     url = 'https://stat.fsc.gov.tw/FSC_OAS3_RESTORE/api/CSV_EXPORT?TableID=B14&OUTPUT_FILE=Y'
     webpage = urllib.request.urlopen(url) 
     data = csv.DictReader(webpage.read().decode('utf-8').splitlines()) 
+
+    def get_head(institution):
+      match institution:
+        case _ if '代表人辦事處' in institution:
+            return f'{institution.split("代表人辦事處")[0]}代表人辦事處'
+        case _ if '銀行' in institution:
+            return f'{institution.split("銀行")[0]}銀行'
+        case _ if '信用合作社' in institution:
+            return f'{institution.split("信用合作社")[0]}信用合作社'
+        case _ :
+            pass
+
+
     for row in data:
       head_code = row.get('\ufeff總機構代號')
       if head_code is not None:
         if len(head_code) < 3:
           head_code = head_code.zfill(3)
 
-      Banks.objects.get_or_create(
-        head_code = head_code,
+      institution = row.get('機構名稱')
+      head = get_head(institution)
+
+      if head is None:
+        continue
+
+      bank, created = Banks.objects.get_or_create(
+        bank_code = head_code,
+        defaults={
+          'bank': head
+        }
+      )
+
+      Institutions.objects.get_or_create(
+        head_code = bank,
         institution_code = row.get('機構代號'),
-        institution =  row.get('機構名稱'),
-        address = row.get('地址'),
-        tel = row.get('電話'),
+        defaults={
+        'institution': row.get('機構名稱'),
+        'address': row.get('地址'),
+        'tel': row.get('電話'),
+        }
       )
     print("腳本執行完畢")
