@@ -7,6 +7,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>台灣銀行代碼查詢</title>
 	<link rel="stylesheet" href={% static "styles/style.css" %}>
+	<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
 	<main class="container my-2 mx-auto">
@@ -16,18 +17,30 @@
 				<a href="https://5xcampus.com/">5xCampus</a>
 			</div>
 			<h1 class="text-5xl font-thin my-2">台灣銀行代碼查詢</h1>
-			<div class="flex">
-				<div class="flex flex-col">
+			<div class="flex" x-data="{
+        search: '',
+        items: {{ bank_list|safe }},
+				placeholder: '請輸入關鍵字或銀行代碼',
+				show: false,
+        get filteredItems() {
+          return this.items.filter(i => i.title.includes(this.search) || i.code.includes(this.search))},
+				clearSearch(){
+					this.search=''; show = true},
+				searchPlaceholder(newPlaceholder){
+					this.placeholder = newPlaceholder || '請輸入關鍵字或銀行代碼'; }
+				}">
+				<div class="flex flex-col" @click.away="show = false" >
 					<label for="">銀行名稱</label>
-					<input id="type" type="text" list="typelist" class="border border-gray-500 p-2 text-lg" placeholder="請輸入關鍵字或銀行代碼">
-					<datalist id="typelist">
-						{% for bank in banks %}
-							<option>{{ bank.bank_code }}{{ bank.bank }}</option>
-						{% endfor %}
-					</datalist>
+    			<input type="text" x-model="search" :placeholder="placeholder" class="border border-gray-500 p-2 text-lg w-auto" @click="show = true" @focus="clearSearch" @input="searchPlaceholder(search)">
+    			<ul x-show="show">
+        		<template x-for="item in filteredItems" :key="item.code">
+              <li @click="search = ''; searchPlaceholder(`${item.code} ${item.title}`) ; show = false" class="cursor-pointer p-2 hover:bg-gray-200" x-text="`${item.code} ${item.title}`"></li>
+            </template>
+    			</ul>
 				</div>
 				<div>
 					<label for="">分行名稱</label>
+					
 				</div>
 			</div>
 		</div>
