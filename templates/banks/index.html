@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,63 +10,98 @@
 </head>
 <body>
     <main class="container my-2 mx-auto">
-		<div class="mx-2 px-2" x-data="{
-				searchbank: '',
-				searchbranch: '',
-				banks: {{ bank_list|safe }},
-				branches: {{ branch_list|safe }},
-				selectedBankCode: '',
-				selectedBank: {},
-				selectedBranch: {},
-				bankplaceholder: '請輸入關鍵字或銀行代碼',
-				branchplaceholder: '請選擇分行名稱',
-				showbank: false,
-				showbranch: false,
-				copyCodeText:'複製代碼',
-				copyButtonText: '複製此頁面連結',
-				get filteredBanks() {
-					return this.banks.filter(bank => bank.title.includes(this.searchbank) || bank.code.includes(this.searchbank))
-				},
-				get filteredBranches() {
-					return this.branches.filter(branch => branch.bank_code === this.selectedBankCode && (branch.title.includes(this.searchbranch) || branch.code.includes(this.searchbranch)))
-				},
-				clearSearch() {
-					this.searchbank=''; this.showbank = true;
-				},
-				clearBranchSearch() {
-					this.searchbranch=''; this.showbranch = true;
-				},
-				searchBankPlaceholder(newPlaceholder) {
-					this.bankplaceholder = newPlaceholder || '請輸入關鍵字或銀行代碼';
-				},
-				searchBranchPlaceholder(newPlaceholder) {
-					this.branchplaceholder = newPlaceholder || '請選擇分行名稱';
-				},
-				copyCode(){
-					const branchCode = this.selectedBranch.code;
-					navigator.clipboard.writeText(branchCode).then(() => {
+        <div class="mx-2 px-2" x-data="{
+                searchbank: '',
+                searchbranch: '',
+                banks: {{ bank_list|safe }},
+                branches: {{ branch_list|safe }},
+                selectedBankCode: {% if selected_bank %}{{ selected_bank.bank_code }}{% else %}''{% endif %},
+                selectedBank:{% if selected_bank %}{ title: '{{ selected_bank.bank }}', code: '{{ selected_bank.bank_code }}' }{% else %}{}{% endif %},
+                selectedBranch:{% if selected_branch %}{ title: '{{ selected_branch.branch }}', code: '{{ selected_branch.branch_code }}', address: '{{ selected_branch.address }}', tel: '{{ selected_branch.tel }}' }{% else %}{}{% endif %},
+                bankplaceholder: '請輸入關鍵字或銀行代碼',
+                branchplaceholder: '請選擇分行名稱',
+                showbank: false,
+                showbranch: false,
+                showDetail: {% if selected_bank and selected_branch %}true{% else %}false{% endif %},
+                copyCodeText: '複製代碼',
+                copyButtonText: '複製此頁面連結',
+                get filteredBanks() {
+                    return this.banks.filter(bank => bank.title.includes(this.searchbank) || bank.code.includes(this.searchbank));
+                },
+                get filteredBranches() {
+                    return this.branches.filter(branch => branch.bank_code === this.selectedBankCode && (branch.title.includes(this.searchbranch) || branch.code.includes(this.searchbranch)));
+                },
+                clearSearch() {
+                    this.searchbank = ''; 
+                    this.showbank = true;
+                },
+                clearBranchSearch() {
+                    this.searchbranch = ''; 
+                    this.showbranch = true;
+                },
+                searchBankPlaceholder(newPlaceholder) {
+                    this.bankplaceholder = newPlaceholder || '請輸入關鍵字或銀行代碼';
+                },
+                searchBranchPlaceholder(newPlaceholder) {
+                    this.branchplaceholder = newPlaceholder || '請選擇分行名稱';
+                },
+                selectBranch(branch) {
+                    this.selectedBranch = branch;
+                    this.searchbranch = branch.title;
+                    this.showbranch = false;
+                    this.showDetail = false;
+                    this.updateURL();
+                },
+                selectBank(bank) {
+                    this.searchbank = `${bank.code} ${bank.title}`;
+                    this.selectedBankCode = bank.code;
+                    this.selectedBank = bank;
+                    this.showbank = false;
+                    this.searchBankPlaceholder(`${bank.code} ${bank.title}`);
+                    this.searchbranch = '';
+                    this.searchBranchPlaceholder('請選擇分行名稱');
+                    this.selectedBranch = {};
+                    this.showDetail = false;
+                },
+                updateURL() {
+                    const bankCode = this.selectedBank.code;
+                    const branchCode = this.selectedBranch.code;
+                    const bankTitle = this.selectedBank.title;
+                    const branchTitle = this.selectedBranch.title;
+                    const url = `${window.location.origin}/${bankCode}/${branchCode}/${(bankTitle)}-${(branchTitle)}.html`;
+                    window.history.pushState({}, '', url);
+                },
+                copyCode() {
+                    const branchCode = this.selectedBranch.code;
+                    navigator.clipboard.writeText(branchCode).then(() => {
                         this.copyCodeText = '已複製';
                         setTimeout(() => {
                             this.copyCodeText = '複製代碼';
                         }, 2000);
                     });
-				},
-				copyURL() {
-					const bankCode = this.selectedBank.code;
-					const branchCode = this.selectedBranch.code;
-					const bankTitle = this.selectedBank.title;
-					const branchTitle = this.selectedBranch.title;
-					const url = `${window.location.origin}/${bankCode}/${branchCode}/${encodeURIComponent(bankTitle)}-${encodeURIComponent(branchTitle)}.html`;
-					window.history.pushState({}, '', url);
-					navigator.clipboard.writeText(url).then(() => {
+                },
+                copyURL() {
+                    const bankCode = this.selectedBank.code;
+                    const branchCode = this.selectedBranch.code;
+                    const bankTitle = this.selectedBank.title;
+                    const branchTitle = this.selectedBranch.title;
+                    const url = `${window.location.origin}/${bankCode}/${branchCode}/${(bankTitle)}-${(branchTitle)}.html`;
+                    window.history.pushState({}, '', url);
+                    navigator.clipboard.writeText(url).then(() => {
                         this.copyButtonText = '已複製';
                         setTimeout(() => {
                             this.copyButtonText = '複製此頁面連結';
                         }, 2000);
                     });
-				}
-			}">
-        <div class="mx-2 px-2">
+                },
+            }" x-init="() => {
+                if (Object.keys(selectedBank).length > 0) {
+                    searchbank = `${selectedBank.code} ${selectedBank.title}`;
+                }
+                if (Object.keys(selectedBranch).length > 0) {
+                    searchbranch = selectedBranch.title;
+                }
+            }">
             <div class="flex gap-2 text-gray-500">
                 <p>powered by</p>
                 <a href="https://5xcampus.com/">5xCampus</a>
@@ -80,7 +114,7 @@
                     <div class="relative mt-1">
                         <ul x-show="showbank" class="absolute border border-gray-500 max-h-60 overflow-y-auto bg-white w-full z-10">
                             <template x-for="bank in filteredBanks" :key="bank.code">
-                                <li @click="searchbank = `${bank.code} ${bank.title}`; selectedBankCode = bank.code; selectedBank = bank; showbank = false; searchBankPlaceholder(`${bank.code} ${bank.title}`); searchbranch = ''; searchBranchPlaceholder('請選擇分行名稱'); selectedBranch = {};" class="cursor-pointer p-2 hover:bg-gray-200" x-text="`${bank.code} ${bank.title}`"></li>
+                                <li @click="selectBank(bank)" class="cursor-pointer p-2 hover:bg-gray-200" x-text="`${bank.code} ${bank.title}`"></li>
                             </template>
                         </ul>
                     </div>
@@ -91,7 +125,7 @@
                     <div class="relative mt-1">
                         <ul x-show="showbranch" class="absolute border border-gray-500 max-h-60 overflow-y-auto bg-white w-full z-10">
                             <template x-for="branch in filteredBranches" :key="branch.code">
-                                <li @click="searchbranch = `${branch.title}`; selectedBranch = branch; showbranch = false" class="cursor-pointer p-2 hover:bg-gray-200" x-text="`${branch.title}`"></li>
+                                <li @click="selectBranch(branch)" class="cursor-pointer p-2 hover:bg-gray-200" x-text="`${branch.title}`"></li>
                             </template>
                         </ul>
                     </div>
@@ -100,28 +134,27 @@
             <p class="text-gray-400">可使用下拉選單或直接輸入關鍵字查詢</p>
             <div x-show="Object.keys(selectedBranch).length > 0">
                 <div class="border-2 border-dashed border-black bg-green-100 font-bold p-2 flex">
-										<div class="grow">
-                    		<h3 x-text="`${selectedBank.title} (${selectedBank.code}) ${selectedBranch.title}`" class="text-3xl m-2"></h3>
-                    		<div class="flex">
-                        		<p class="text-xl m-2 font-normal">分行代碼：<span x-text="selectedBranch.code"></span></p>
-                        		<button class="m-2 bg-green-500 border border-black px-2 py-1 rounded-md text-white hover:bg-green-300" x-text="copyCodeText" @click="copyCode"></button>
-                    		</div>
-                    		<p class="text-xl m-2 font-normal">地址：<span x-text="selectedBranch.address"></span></p>
-                    		<p class="text-xl m-2 font-normal">電話：<span x-text="selectedBranch.tel"></span></p>
-										</div>
-										<div class="justify-self-end self-end font-normal text-green-900">
-											<p>資料來源：
-												<a href="https://data.gov.tw/dataset/6041">政府資料開放平台</a>
-											</p>
-										</div>
+                    <div class="grow">
+                        <h3 x-text="`${selectedBank.title} (${selectedBank.code}) ${selectedBranch.title}`" class="text-3xl m-2"></h3>
+                        <div class="flex">
+                            <p class="text-xl m-2 font-normal">分行代碼：<span x-text="selectedBranch.code"></span></p>
+                            <button class="m-2 bg-green-500 border border-black px-2 py-1 rounded-md text-white hover:bg-green-300" x-text="copyCodeText" @click="copyCode"></button>
+                        </div>
+                        <p class="text-xl m-2 font-normal">地址：<span x-text="selectedBranch.address"></span></p>
+                        <p class="text-xl m-2 font-normal">電話：<span x-text="selectedBranch.tel"></span></p>
+                    </div>
+                    <div class="justify-self-end self-end font-normal text-green-900">
+                        <p>資料來源：
+                            <a href="https://data.gov.tw/dataset/6041">政府資料開放平台</a>
+                        </p>
+                    </div>
                 </div>
                 <div class="flex">
-                    <a href="{% url 'index' %}" class="border border-black my-2 px-2 py-1 rounded-md text-xl">重新查詢</a>
+                    <a href="{% url 'index' %}" class="border border-black my-2 px-2 py-1 rounded-md text-xl" @click="showDetail = false">重新查詢</a>
                     <button class="border border-black m-2 px-2 py-1 rounded-md bg-blue-500 text-white text-xl hover:bg-blue-200" @click="copyURL" x-text="copyButtonText"></button>
                 </div>
             </div>
         </div>
-			</div>
     </main>
 </body>
 </html>
