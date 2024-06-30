@@ -32,10 +32,19 @@ def index(request, bank_code=None, branch_code=None, bank_title=None, branch_tit
         'banks': banks,
         'bank_list': bank_list,
         'branch_list': branch_list,
-        'selected_bank': selected_bank,
-        'selected_branch': selected_branch
+        'selected_bank': {
+            'code': selected_bank.bank_code,
+            'title': selected_bank.bank
+        } if selected_bank else None,
+        'selected_branch': {
+            'code': selected_branch.branch_code,
+            'title': selected_branch.branch,
+            'address': selected_branch.address,
+            'tel': selected_branch.tel
+        } if selected_branch else None
     }
 
     return render(request, "banks/index.html", context)
+
 
 
