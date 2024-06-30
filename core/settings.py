@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -75,16 +78,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
+APP_NAME = os.environ.get("FLY_APP_NAME")
+ALLOWED_HOSTS = [f"{APP_NAME}.fly.dev"]
+
+if APP_NAME:
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    }
+    SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-secret-key')
+    DEBUG = os.getenv('DEBUG', 'False') == 'True'
+else:
+    DATABASES = {
+        'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bankinfo',
         'USER': os.getenv('YOUR_USER_NAME'),
         'PASSWORD': os.getenv('YOUR_PASSWORD'),
         'HOST': 'localhost',
         'PORT': '5432',
+        }
     }
-}
+
 
 
 # Password validation
